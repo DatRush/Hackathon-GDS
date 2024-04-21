@@ -16,7 +16,6 @@ import requests
 gmaps = googlemaps.Client(key='AIzaSyD7xicoRah_jW46T0gOAhmISDVMua3QuSQ')
 
 
-# Функция для подключения к базе данных
 def connect_db():
     conn = psycopg2.connect(
         dbname="Hackathon",
@@ -26,7 +25,6 @@ def connect_db():
     )
     return conn
 
-# Функция для вставки объявления в базу данных
 def insert_ad(data):
     conn = connect_db()
     try:
@@ -49,7 +47,6 @@ def insert_ad(data):
 
 sleep_interval = 3600
 
-# Путь к драйверу Chrome
 driver_path = '/opt/homebrew/Caskroom/chromedriver/123.0.6312.122/chromedriver-mac-arm64/chromedriver'
 
 options = Options()
@@ -64,7 +61,6 @@ main_window = driver.current_window_handle
 
 visited_urls = set()
 
-# Создание файла CSV для сохранения данных
 with open('crocos_data.csv', mode='a', newline='', encoding='utf-8') as file:
     writer = csv.writer(file)
     if file.tell() == 0:
@@ -72,20 +68,16 @@ with open('crocos_data.csv', mode='a', newline='', encoding='utf-8') as file:
 
 try:
     while True:
-        # Получение элементов, каждый из которых содержит изображение и ссылку
         sights_items = driver.find_elements(By.CSS_SELECTOR, '.sights__item')
         for item in sights_items:
-            # Извлечение URL изображения
             image_element = item.find_element(By.CSS_SELECTOR, '.sights__item--img img')
             image_url = image_element.get_attribute('src') if image_element else None
             
-            # Извлечение URL ссылки
             btn_link = item.find_element(By.CSS_SELECTOR, '.sights__item--btn-linck')
             href = btn_link.get_attribute('href') if btn_link else None
 
             if href and href not in visited_urls:
                 visited_urls.add(href)
-                # Открыть новую вкладку и перейти по ссылке
                 driver.execute_script("window.open(arguments[0]);", href)
                 WebDriverWait(driver, 15).until(EC.number_of_windows_to_be(2))
                 new_window = [window for window in driver.window_handles if window != main_window][0]
@@ -117,9 +109,7 @@ try:
                 first_p_description = soup.select('.object_content--desc p')[5].get_text(strip=True) if first_p_description_data else 'Недоступно'
             else:
                 first_p_description = first_p_description_data.text.strip() if first_p_description_data else 'Недоступно'
-                
-            
-            # Геокодирование адреса
+
             geocode_data = gmaps.geocode(address)
             latitude = geocode_data[0]['geometry']['location']['lat'] if geocode_data else 'Недоступно'
             longitude = geocode_data[0]['geometry']['location']['lng'] if geocode_data else 'Недоступно'

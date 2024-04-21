@@ -1,5 +1,3 @@
-# 7018224927:AAGOfPzIlVHr2Hrk9U2YpLT1UxlZ431bD7Y
-
 from telegram import InputMediaPhoto
 from telegram.constants import ParseMode
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
@@ -12,16 +10,14 @@ import re
 from html import unescape
 import time
 
-# Настройка логирования
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 GOOGLE_API_KEY = 'AIzaSyD7xicoRah_jW46T0gOAhmISDVMua3QuSQ'
 
-# Функция для подключения к базе данных
 def connect_db():
     return psycopg2.connect(dbname="Hackathon", user="postgres", password="1234", host="localhost")
 
-# Функция для получения популярных объявлений
+
 def get_popular_ads():
     conn = connect_db()
     with conn.cursor() as cur:
@@ -31,9 +27,9 @@ def get_popular_ads():
     return ads
 
 def clean_html(raw_html):
-    cleanr = re.compile(r'<.*?>|<br\s*/?>\s*')  # Паттерн для поиска HTML тегов и символов <br> с последующими пробелами
-    cleantext = re.sub(cleanr, '', raw_html)  # Удаление HTML тегов и символов <br>
-    cleantext = unescape(cleantext)  # Декодирование HTML сущностей
+    cleanr = re.compile(r'<.*?>|<br\s*/?>\s*') 
+    cleantext = re.sub(cleanr, '', raw_html)  
+    cleantext = unescape(cleantext)  
     return cleantext
 
 
@@ -60,8 +56,6 @@ def generate_map_url(start, end, route_polyline):
     return f"https://maps.googleapis.com/maps/api/staticmap?size=600x400&path={path}&markers={markers}&key={GOOGLE_API_KEY}"
 
 
-
-# Команда старта бота
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton("Популярное", callback_data='popular')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -73,9 +67,9 @@ async def show_details(update: Update, context: ContextTypes.DEFAULT_TYPE, ad_de
         await query.answer()
 
     details_message = (
-        f"<b>{ad_details[0]}</b>\n\n"  # Название
-        f"<a href='{ad_details[1]}'>Ссылка на страницу</a>\n\n"  # URL места
-        f"Адрес: {ad_details[2]}\n"  # Адрес
+        f"<b>{ad_details[0]}</b>\n\n"  
+        f"<a href='{ad_details[1]}'>Ссылка на страницу</a>\n\n"  
+        f"Адрес: {ad_details[2]}\n" 
     )
 
     keyboard = [
@@ -96,10 +90,8 @@ async def show_details(update: Update, context: ContextTypes.DEFAULT_TYPE, ad_de
             reply_markup=reply_markup,
             parse_mode=ParseMode.HTML
         )
-        # Удаление предыдущего сообщения с кнопками
         await query.message.delete()
     else:
-        # Если функция вызвана напрямую через команду, то отправляем фото без удаления предыдущего сообщения
         await context.bot.send_photo(
             chat_id=update.effective_chat.id,
             photo=image_url,
@@ -109,15 +101,13 @@ async def show_details(update: Update, context: ContextTypes.DEFAULT_TYPE, ad_de
         )
 
 
-# Функция для отображения описания
 async def show_description(update: Update, context: ContextTypes.DEFAULT_TYPE, ad_details):
     query = update.callback_query
     if query:
         await query.answer()
 
     description_message = f"Описание: {ad_details[3]}"
-    
-    # Ваша кнопка "Назад" должна вести на детали места
+
     keyboard = [
         [InlineKeyboardButton("Назад", callback_data=f"detail_{ad_details[4]}")]
     ]
@@ -125,16 +115,14 @@ async def show_description(update: Update, context: ContextTypes.DEFAULT_TYPE, a
     
     await query.edit_message_text(text=description_message, reply_markup=reply_markup, parse_mode=ParseMode.HTML)
 
-    
-# Функция для отображения контактных данных
 async def show_contacts(update: Update, context: ContextTypes.DEFAULT_TYPE, ad_details):
     query = update.callback_query
     if query:
         await query.answer()
 
     contacts_message = (
-        f"Телефон: {ad_details[1]}\n"  # Телефон
-        f"Адрес: {ad_details[2]}"  # Адрес
+        f"Телефон: {ad_details[1]}\n"  
+        f"Адрес: {ad_details[2]}" 
     )
 
     keyboard = [
@@ -152,15 +140,14 @@ async def show_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE, ad_d
     if query:
         await query.answer()
 
-    schedule_message = f"Расписание:\n{ad_details['schedule']}"  # предполагаем, что расписание хранится в ad_details['schedule']
+    schedule_message = f"Расписание:\n{ad_details['schedule']}"  
 
-    # Кнопка для возвращения к деталям места
+
     keyboard = [
         [InlineKeyboardButton("Вернуться назад", callback_data=f"detail_{ad_details['id']}")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
-    # Если у сообщения есть подпись, обновляем подпись, иначе обновляем текст
+    
     if query.message.caption:
         await query.edit_message_caption(caption=schedule_message, reply_markup=reply_markup)
     else:
@@ -174,17 +161,13 @@ def setup_handlers(application):
     application.add_handler(MessageHandler(filters.LOCATION, handle_location))
     
 async def request_location(query, context: ContextTypes.DEFAULT_TYPE):
-    # Так как InlineKeyboardButton не поддерживает запрос геолокации, используем обычное сообщение
     keyboard = [[KeyboardButton("Отправить моё местоположение", request_location=True)]]
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-
-    # Изменяем подпись текущего сообщения, чтобы показать инструкцию для пользователя
     await query.edit_message_caption(
         caption="Пожалуйста, нажмите на кнопку ниже, чтобы поделиться вашим местоположением.",
-        reply_markup=None  # Удаляем предыдущие кнопки
+        reply_markup=None  
     )
 
-    # Отправляем новое сообщение с запросом на геолокацию
     await context.bot.send_message(
         chat_id=query.message.chat_id,
         text="Поделитесь вашим местоположением:",
@@ -213,7 +196,7 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
             distance = route_info['distance']['text']
             instructions = "Ваш маршрут:\n"
             for step in route_info['steps']:
-                instruction_text = clean_html(step['html_instructions'])  # Очищаем HTML из инструкций
+                instruction_text = clean_html(step['html_instructions'])
                 duration_text = step['duration']['text']
                 instructions += f"{instruction_text}, {duration_text}\n" 
                 
@@ -233,12 +216,6 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("Место назначения не определено. Пожалуйста, выберите место еще раз.")
 
-
-
-
-
-
-# Обработка кнопок
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -311,7 +288,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if coords:
         context.user_data['destination'] = {'latitude': coords[0], 'longitude': coords[1], 'id': place_id}
-        # Вызов функции request_location для изменения текста и отображения кнопки
         await request_location(query, context)
 
     
@@ -347,16 +323,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text(text=message_text, reply_markup=reply_markup)
 
 
-
-            
-
-
-# Основная функция для запуска бота
 def main():
     application = Application.builder().token("7018224927:AAGOfPzIlVHr2Hrk9U2YpLT1UxlZ431bD7Y").build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button))
-    # application.add_handler(CallbackQueryHandler(handle_send_location, pattern='^send_location$'))
     application.add_handler(MessageHandler(filters.LOCATION, handle_location)) 
     application.run_polling()
 
