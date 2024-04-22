@@ -15,17 +15,17 @@ The following technologies, libraries, and tools were used in the project:
 * Logging
 * Telegram Bot API
 * Google Maps API
-* Installation
 
-## Step-by-step instructions for setting up the project:
+## Installation
+Step-by-step instructions for setting up the project:
 
 1. Clone the repository:
 `git clone https://github.com/DatRush/Hackathon-GDS.git`
 
-2. Install the required libraries:
+1. Install the required libraries:
 `pip install -r requirements.txt`
 
-3. Configure environment variables or API keys as per your requirements.
+1. Configure environment variables or API keys as per your requirements.
 
 ## Launch
 1. To run the parsing bot:
