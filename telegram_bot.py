@@ -12,10 +12,12 @@ import time
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-GOOGLE_API_KEY = 'AIzaSyD7xicoRah_jW46T0gOAhmISDVMua3QuSQ'
+# Placeholder for your Google API key. Replace with your actual API key.
+GOOGLE_API_KEY = 'Your_Google_API_Key'
 
+# Function to establish a database connection. Update with your actual database credentials.
 def connect_db():
-    return psycopg2.connect(dbname="Hackathon", user="postgres", password="1234", host="localhost")
+    return psycopg2.connect(dbname="Your_Database_Name", user="Your_Username", password="Your_Password", host="Your_Host")
 
 
 def get_popular_ads():
@@ -322,9 +324,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await query.edit_message_text(text=message_text, reply_markup=reply_markup)
 
+# Main function to start the Telegram bot application. Replace the token with your actual bot token.
 
 def main():
-    application = Application.builder().token("7018224927:AAGOfPzIlVHr2Hrk9U2YpLT1UxlZ431bD7Y").build()
+    application = Application.builder().token("Your_Telegram_Bot_Token").build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button))
     application.add_handler(MessageHandler(filters.LOCATION, handle_location)) 
